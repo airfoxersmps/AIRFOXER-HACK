@@ -1,0 +1,2881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirFoxer Innovation Hackathon 2026</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        /* ============================================
+           CSS VARIABLES & THEME DEFINITIONS
+           ============================================ */
+        :root {
+            --bg-body: #ffffff;
+            --bg-surface: #f8fafc;
+            --bg-input: #f8fafc;
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --secondary: #3b82f6;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --nav-bg-scrolled: rgba(255, 255, 255, 0.95);
+            --hero-gradient: radial-gradient(circle at top right, #fff7ed, #ffffff, #eff6fe);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
+            
+            /* Payment specific colors */
+            --payment-pending: #f59e0b;
+            --payment-verified: #22c55e;
+            --payment-rejected: #ef4444;
+            
+            /* Original CSS variables kept for compatibility */
+            --notif-bg: #eff6ff;
+            --notif-border: #dbeafe;
+            --blob-1: #fee2e2;
+            --blob-2: #fed7aa;
+            --blob-3: #dbeafe;
+            --pill-bg: white;
+            --pill-border: #fed7aa;
+            --gradient-text: linear-gradient(90deg, var(--secondary), var(--primary), #fbbf24);
+        }
+
+        /* ============================================
+           DARK MODE VARIABLES
+           ============================================ */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-input: #020617;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --nav-bg-scrolled: rgba(15, 23, 42, 0.95);
+            --hero-gradient: radial-gradient(circle at top right, #1e1b4b, #0f172a, #0f172a);
+            
+            /* Dark mode overrides */
+            --notif-bg: rgba(59, 130, 246, 0.1);
+            --notif-border: rgba(59, 130, 246, 0.2);
+            --blob-1: #581c87;
+            --blob-2: #c2410c;
+            --blob-3: #1e3a8a;
+            --pill-bg: rgba(15, 23, 42, 0.8);
+            --pill-border: rgba(249, 115, 22, 0.3);
+        }
+
+        /* ============================================
+           GLOBAL STYLES & RESETS
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; line-height: 1.5; transition: background-color 0.5s ease; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+
+        /* ============================================
+           NAVIGATION STYLES
+           ============================================ */
+        nav { position: fixed; top: 0; width: 100%; z-index: 1000; padding: 1.5rem 0; background: transparent; transition: all 0.3s ease; }
+        nav.scrolled { background: var(--nav-bg-scrolled); backdrop-filter: blur(10px); padding: 1rem 0; border-bottom: 1px solid var(--border); box-shadow: 0 1px 2px 0 var(--shadow-color); }
+        .logo { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-main); }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), #ea580c); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: color 0.3s; }
+        .nav-btn:hover { color: var(--secondary); }
+
+        /* ============================================
+           BUTTON STYLES
+           ============================================ */
+        .btn-primary { background: linear-gradient(90deg, var(--primary), #ea580c); color: white; padding: 10px 24px; border-radius: 99px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; text-decoration: none; font-size: 0.95rem; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary { background: var(--bg-body); color: var(--text-main); padding: 10px 24px; border-radius: 99px; border: 1px solid var(--border); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; text-decoration: none; font-size: 0.95rem; }
+        .btn-secondary:hover:not(:disabled) { background: var(--bg-surface); border-color: var(--secondary); color: var(--secondary); }
+        .btn-success { background: linear-gradient(90deg, var(--success), #16a34a); color: white; padding: 10px 24px; border-radius: 99px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.4); }
+        
+        /* ============================================
+           PAYMENT STATUS BADGES
+           ============================================ */
+        .payment-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; }
+        .payment-pending { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .payment-verified { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .payment-rejected { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* ============================================
+           AUTH UI STYLES
+           ============================================ */
+        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 20px 60px; background: var(--bg-surface); }
+        .auth-card { background: var(--bg-body); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--border); width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px var(--shadow-color); position: relative; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-main); font-weight: 600; }
+        .form-input { width: 100%; padding: 0.75rem 1rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 0.75rem; color: var(--text-main); font-size: 1rem; transition: border-color 0.2s; }
+        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+        
+        .divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; color: var(--text-muted); font-size: 0.875rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
+
+        /* ============================================
+           NOTIFICATION DROPDOWN
+           ============================================ */
+        .notification-dropdown { position: absolute; top: 60px; right: 0; width: 340px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 1rem; box-shadow: 0 10px 15px -3px var(--shadow-color); display: none; z-index: 1001; overflow: hidden; }
+        .notification-dropdown.active { display: block; }
+        .notif-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); }
+        .notif-list { max-height: 300px; overflow-y: auto; }
+        .notif-item { padding: 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; transition: background 0.2s; cursor: pointer; }
+        .notif-item:hover { background: var(--bg-surface); }
+
+        /* ============================================
+           MESSAGE BOX / TOAST NOTIFICATION
+           ============================================ */
+        #message-box { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: none; padding: 1rem 1.5rem; border-radius: 0.75rem; color: white; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--hero-gradient); padding-top: 80px; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://images.unsplash.com/photo-1582556272565-34316140543e?auto=format&fit=crop&q=80&w=2070'); background-size: cover; background-position: center; opacity: 0.15; mix-blend-mode: luminosity; pointer-events: none; z-index: 1; }
+        
+        .hero-content { position: relative; z-index: 2; text-align: center; }
+        
+        h1 { font-size: 4rem; font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); }
+        .gradient-text { background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shine 3s linear infinite; }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        /* ============================================
+           REGISTRATION GRID STYLES - IMPROVED VISIBILITY
+           ============================================ */
+        .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .reg-section-title { grid-column: span 2; font-size: 1rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin: 1rem 0 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        
+        /* Improved form visibility for registration */
+        .auth-card { max-height: 90vh; overflow-y: auto; }
+        .auth-card::-webkit-scrollbar { width: 8px; }
+        .auth-card::-webkit-scrollbar-track { background: var(--bg-surface); border-radius: 10px; }
+        .auth-card::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .auth-card::-webkit-scrollbar-thumb:hover { background: var(--primary-hover); }
+
+        /* ============================================
+           ORIGINAL STYLES - KEPT FOR COMPATIBILITY
+           ============================================ */
+        .section { padding: 6rem 0; border-top: none; }
+        .bg-surface { background-color: var(--bg-surface); }
+        .grid { display: grid; gap: 2rem; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .card { background: var(--bg-body); border: 1px solid var(--border); padding: 2.5rem; border-radius: 1.5rem; transition: all 0.3s; box-shadow: 0 1px 2px 0 var(--shadow-color); }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px -3px var(--shadow-color); border-color: var(--primary); }
+        
+        /* Notification Bar */
+        .notification-bar { background-color: var(--bg-body); border-bottom: 1px solid var(--border); padding: 15px 0; position: relative; z-index: 20; }
+        .notif-container { background: var(--notif-bg); border: 1px solid var(--notif-border); border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 15px; max-width: 900px; margin: 0 auto; }
+        .badge { background: var(--secondary); color: white; font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: 99px; text-transform: uppercase; }
+        
+        /* Ticker */
+        .ticker-wrap { flex: 1; overflow: hidden; white-space: nowrap; position: relative; }
+        .ticker-text { display: inline-block; animation: ticker 25s linear infinite; padding-left: 100%; color: var(--text-main); font-weight: 500; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        
+        /* Download Card */
+        .download-card { display: flex; align-items: center; justify-content: space-between; background: var(--bg-body); border: 1px solid var(--border); padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 0.75rem; transition: transform 0.2s, border-color 0.2s; }
+        .download-card:hover { border-color: var(--secondary); transform: scale(1.01); }
+        .download-info { display: flex; align-items: center; gap: 1rem; }
+        .download-icon { font-size: 1.5rem; color: var(--secondary); }
+        
+        /* Team Card */
+        .team-card { background: var(--bg-body); border: 1px solid var(--border); padding: 2rem; border-radius: 1.5rem; text-align: center; transition: transform 0.3s, box-shadow 0.3s; }
+        .team-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px -5px var(--shadow-color); border-color: var(--primary); }
+        .team-logo-container { width: 100px; height: 100px; margin: 0 auto 1.5rem; border-radius: 50%; padding: 4px; background: linear-gradient(135deg, var(--primary), var(--secondary)); overflow: hidden; }
+        .team-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; background: var(--bg-surface); }
+        
+        /* Countdown */
+        .countdown-container { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 3rem; flex-wrap: wrap; }
+        .countdown-item { display: flex; flex-direction: column; align-items: center; background: var(--bg-surface); padding: 1rem 1.5rem; border-radius: 1rem; border: 1px solid var(--border); min-width: 100px; box-shadow: 0 4px 6px -1px var(--shadow-color); }
+        .countdown-number { font-size: 2.5rem; font-weight: 800; color: var(--primary); line-height: 1; font-variant-numeric: tabular-nums; }
+        .countdown-label { font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; font-weight: 600; }
+        
+        /* Status Pill */
+        .status-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 8px 20px; border-radius: 99px; border: 1px solid var(--pill-border); margin-bottom: 2rem; box-shadow: 0 1px 2px 0 var(--shadow-color); }
+        .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); } 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); } }
+        
+        /* Stats Section */
+        .stats { margin-top: 4rem; display: flex; gap: 4rem; justify-content: center; color: var(--text-muted); }
+        .stat-number { display: block; font-size: 2.5rem; font-weight: 800; color: var(--text-main); line-height: 1; margin-bottom: 0.5rem; }
+        
+        /* Flow Steps */
+        .flow-step { text-align: center; position: relative; z-index: 10; }
+        .icon-circle { width: 80px; height: 80px; background: var(--bg-body); border: 2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.75rem; box-shadow: 0 4px 6px -1px var(--shadow-color); transition: transform 0.3s; }
+        .flow-step:hover .icon-circle { transform: scale(1.1); border-color: var(--primary); }
+        
+        /* Timeline */
+        .timeline-item { display: flex; gap: 2rem; }
+        .timeline-line { display: flex; flex-direction: column; align-items: center; }
+        .timeline-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--bg-body); border: 4px solid var(--secondary); z-index: 2; }
+        .timeline-bar { width: 2px; height: 100%; background: #cbd5e1; margin-top: 0; min-height: 60px; }
+        
+        /* Cert Grid - Updated */
+        .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .cert-card { background: var(--bg-body); border: 1px solid var(--border); padding: 1.5rem; border-radius: 1.5rem; text-align: center; box-shadow: 0 4px 6px -1px var(--shadow-color); }
+        .cert-card i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; }
+        
+        /* Form Select */
+        .form-select { width: 100%; padding: 0.75rem 1rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 0.75rem; color: var(--text-main); font-size: 1rem; transition: border-color 0.2s; }
+        .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+        
+        /* Footer */
+        footer { background: var(--bg-body); padding: 4rem 0; border-top: 1px solid var(--border); }
+        
+        /* Contact Section */
+        .contact-icon-circle { width: 50px; height: 50px; background: var(--bg-body); border: 2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+
+        /* ============================================
+           PAYMENT SECTION STYLES
+           ============================================ */
+        .payment-section { margin: 2rem 0; }
+        .payment-card { background: white; border-radius: 1rem; padding: 2rem; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .payment-info { background: #f8fafc; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
+        .payment-info h4 { color: #1e293b; margin-bottom: 0.75rem; }
+        .payment-info ul { list-style: none; padding-left: 0; }
+        .payment-info li { margin-bottom: 0.5rem; color: #475569; display: flex; align-items: center; gap: 8px; }
+        .payment-info li i { color: var(--primary); }
+        
+        /* QR Code Container */
+        .qr-container { text-align: center; padding: 2rem; background: white; border-radius: 1rem; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .qr-code { width: 200px; height: 200px; margin: 0 auto 1rem; }
+        .qr-details { margin-top: 1.5rem; }
+        .qr-details h4 { color: var(--text-main); margin-bottom: 0.5rem; }
+        .qr-details p { color: var(--text-muted); font-size: 0.9rem; }
+        
+        /* UTR Input */
+        .utr-input-group { display: flex; gap: 1rem; margin-top: 1rem; }
+        .utr-input-group input { flex: 1; }
+        
+        /* Payment History */
+        .payment-history { margin-top: 2rem; }
+        .payment-record { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8fafc; border-radius: 0.75rem; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; }
+        .payment-record .amount { font-weight: 700; color: #1e293b; }
+        .payment-record .date { font-size: 0.875rem; color: #64748b; }
+
+        /* ============================================
+           DASHBOARD SPECIFIC STYLES
+           ============================================ */
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; background: #ffffff; padding: 2rem; border-radius: 20px; border: 1px solid #edf2f7; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .dashboard-section { margin-bottom: 2rem; }
+        
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .reg-grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .countdown-container { gap: 0.75rem; }
+            .countdown-item { min-width: 70px; padding: 0.75rem; }
+            .countdown-number { font-size: 1.5rem; }
+            .countdown-label { font-size: 0.7rem; }
+            .stats { flex-direction: column; gap: 1.5rem; }
+            .timeline-bar { display: none; }
+            .flow-step { margin-bottom: 2rem; }
+            .mobile-menu-btn { display: block; color: var(--text-main); background: none; border: none; font-size: 1.5rem; }
+            .utr-input-group { flex-direction: column; }
+        }
+        
+        /* Mobile Menu Button */
+        .mobile-menu-btn { display: none; }
+        
+        /* Loading Spinner */
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Auth Container Overlay */
+        .auth-container {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        /* Landing View Display */
+        #landing-view {
+            display: block;
+        }
+
+        /* Dashboard View */
+        #dashboard-view {
+            display: none;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            padding-top: 100px;
+        }
+        
+        #dashboard-view:not(.hidden) {
+            display: block;
+        }
+
+        /* ============================================
+           MODAL STYLES FOR FRONTEND
+           ============================================ */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        
+        .modal {
+            background: var(--bg-body);
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px var(--shadow-color);
+            width: 100%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg-body);
+            z-index: 10;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: var(--border);
+            color: var(--primary);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .notification-item {
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            background: var(--bg-surface);
+            transition: transform 0.2s;
+        }
+        
+        .notification-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
+            border-color: var(--primary);
+        }
+        
+        .notification-item.urgent {
+            border-left: 6px solid var(--error);
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .notification-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .urgent-badge {
+            background: var(--error);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .notification-message {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-light);
+            font-size: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .notification-target {
+            background: var(--bg-body);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--secondary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-view-all {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 99px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-view-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+        }
+
+        /* File input disabled styling */
+        .form-input:disabled {
+            background-color: #e2e8f0;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+         MESSAGE BOX / TOAST NOTIFICATION UI
+         ============================================ -->
+    <div id="message-box"></div>
+
+    <!-- ============================================
+         MAIN NAVIGATION
+         ============================================ -->
+    <nav id="navbar">
+        <div class="container flex justify-between items-center">
+            <!-- Logo -->
+            <div class="logo" onclick="switchView('landing')">
+            <img src="AirFoxer logo.jpeg" alt="AirFoxer Logo" style="width: 40px; height: 40px; object-fit: contain;">
+             <span>AirFoxer <span style="color: var(--primary)">HACK</span></span>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="nav-links">
+                <button class="nav-btn" onclick="switchView('landing')">Home</button>
+                <button class="nav-btn" onclick="switchView('landing', 'about')">About</button>
+                <button class="nav-btn" onclick="switchView('landing', 'tracks')">Themes</button>
+                <button class="nav-btn" onclick="switchView('landing', 'public-docs')">Resources</button>
+                <button class="nav-btn" onclick="switchView('landing', 'schedule')">Schedule</button>
+                
+                <!-- Dashboard Nav Item (conditional) -->
+                <div id="dashboard-nav-item" class="hidden">
+                    <button class="nav-btn" onclick="switchView('dashboard')" style="color: var(--primary);">Dashboard</button>
+                </div>
+
+                <!-- Notifications -->
+                <div style="position: relative;" id="notif-parent">
+                    <button class="nav-btn" onclick="toggleNotifications()"><i class="fa-regular fa-bell"></i></button>
+                    <span id="notif-badge" class="hidden" style="position:absolute; top:-5px; right:-5px; width:10px; height:10px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg-body);"></span>
+                    <div id="notification-dropdown" class="notification-dropdown">
+                        <div class="notif-header">
+                            <strong>Notifications</strong>
+                            <button onclick="clearNotifs()" style="background:none; border:none; color:var(--primary); font-size:0.75rem; cursor:pointer; font-weight:700;">Clear All</button>
+                        </div>
+                        <div class="notif-list" id="notif-list">
+                            <div class="notif-item">Welcome to AirFoxer 2026! Login as Lead to register.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <button class="nav-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+
+                <!-- Auth Buttons - Guest View -->
+                <div id="guest-nav" class="flex gap-4">
+                    <button class="nav-btn" onclick="switchView('lead-login')">Lead Login</button>
+                    <button class="nav-btn" onclick="switchView('member-hub-auth')">Member Login</button>
+                </div>
+
+                <!-- Auth Buttons - Logged In View -->
+                <div id="auth-nav" class="hidden items-center gap-4">
+                    <!-- Only visible to logged-in Leads -->
+                    <button id="nav-reg-btn" class="btn-primary hidden" onclick="switchView('register')">Register Team</button>
+                    <button class="btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         LANDING VIEW (MAIN HOMEPAGE) - KEPT INTACT
+         ============================================ -->
+    <div id="landing-view">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container hero-content">
+                <div class="status-pill">
+                    <span class="dot"></span>
+                    <span style="font-size: 0.875rem; color: var(--primary); font-weight: 600;">Registration Deadline: 22 Feb 2026</span>
+                </div>
+
+                <h1>AirFoxer INNOVATION <br><span class="gradient-text">HACKATHON 2026</span></h1>
+                
+                <p class="subtitle" style="font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 3rem;">
+                    Empowering Future Technologies through Open Innovation
+                </p>
+
+                <!-- Countdown Timer -->
+                <div id="countdown" class="countdown-container">
+                    <div class="countdown-item">
+                        <span id="days" class="countdown-number">00</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="hours" class="countdown-number">00</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="minutes" class="countdown-number">00</span>
+                        <span class="countdown-label">Minutes</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="seconds" class="countdown-number">00</span>
+                        <span class="countdown-label">Seconds</span>
+                    </div>
+                </div>
+
+                <!-- Hero Action Buttons -->
+                <div class="flex justify-center gap-4" style="flex-wrap: wrap;">
+                    <button class="btn-primary" id="hero-action-btn" onclick="switchView('lead-login')">
+                        <span><i class="fa-solid fa-ticket"></i> Start Registration (Leads)</span>
+                    </button>
+                    <a href="https://chat.whatsapp.com/JNX4osphTQw7PBHPDXdqDY" target="_blank" class="btn-secondary" style="text-decoration: none;">
+                        <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Join WhatsApp Community
+                    </a>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats">
+                    <div><span class="stat-number">50</span> Teams</div>
+                    <div><span class="stat-number">Internships</span> & Prizes</div>
+                    <div><span class="stat-number">1 Day</span> Challenge</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notification Bar (Below Hero) -->
+        <div class="notification-bar">
+            <div class="container">
+                <div class="notif-container">
+                    <span class="badge">LIVE UPDATES</span>
+                    <!-- Ticker Wrapper -->
+                    <div class="ticker-wrap">
+                        <div class="ticker-text" id="ticker-text">
+                            🚀 Registration open! &nbsp;&nbsp;|&nbsp;&nbsp; 
+                            📢 Pre-Hackathon workshops announced. &nbsp;&nbsp;|&nbsp;&nbsp; 
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-right" style="color: var(--secondary); cursor: pointer;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Public Documentation Section -->
+        <div style="padding: 2rem; border: 2px dashed var(--border); border-radius: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; margin: 2rem auto; max-width: 800px;">
+            <p>This section is reserved for public documentation and resources.</p>
+            <p>this section is currently under construction. preparing more resources... check back soon!<br>
+            GO HEAD WITH REGISTRATION! <span style="color: var(--primary); font-weight: 600;">Click "Start Registration" above to begin.</span></p>
+        </div>
+
+        <!-- About Section -->
+        <section class="section bg-surface" id="about">
+            <div class="container grid grid-2">
+                <!-- About Content -->
+                <div>
+                    <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text-main);">Objectives</h2>
+                    <ul style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.1rem; list-style-type: none; padding-left: 0;">
+                        <li style="margin-bottom: 10px;">✅ Encourage original, out-of-the-box thinking.</li>
+                        <li style="margin-bottom: 10px;">✅ Identify high-potential ideas for industry funding.</li>
+                        <li style="margin-bottom: 10px;">✅ Enable strong collaboration between academia & industry.</li>
+                    </ul>
+                    <div style="padding: 1.5rem; background: var(--bg-body); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 2px 0 var(--shadow-color);">
+                        <h3 style="color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-lightbulb"></i> Open Innovation
+                        </h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            The hackathon emphasizes experimentation, inclusivity, and long-term impact with IP collaboration opportunities.
+                        </p>
+                    </div>
+                </div>
+                <!-- Track Cards -->
+                <div class="grid grid-2" id="tracks">
+                    <div class="card">
+                        <i class="fa-solid fa-bolt" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Intelligent Energy</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Power Systems, Renewable Integration & Efficiency.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-car-side" style="font-size: 2rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Sustainable Transport</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Mobility Ecosystems, Charging & Battery Intel.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-network-wired" style="font-size: 2rem; color: #22c55e; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Connected Infra</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Digital Networks, Edge Computing & Monitoring.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-robot" style="font-size: 2rem; color: #a855f7; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Industry 5.0</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Smart Automation & AI-Assisted Systems.</p>
+                    </div>
+                    <div class="card" style="grid-column: span 2;">
+                        <i class="fa-solid fa-rocket" style="font-size: 2rem; color: #ec4899; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Open Innovation Track</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Breakthrough ideas across any domain with high impact potential.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Flow / Workshops -->
+        <section class="section">
+            <div class="container">
+                <div class="text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">Pre-Hackathon <span style="color: var(--primary)">Workshops</span></h2>
+                    <p style="color: var(--text-muted); margin-top: 1rem;">Jan 30 - Feb 22, 2026</p>
+                </div>
+                
+                <div class="grid grid-3" style="position: relative;">
+                    <div class="flow-step">
+                        <div class="icon-circle" style="color: var(--secondary); border-color: var(--secondary);">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <h3 style="color: var(--text-main);">Ideation</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Problem identification & creative thinking techniques.</p>
+                    </div>
+                    <div class="flow-step">
+                        <div class="icon-circle" style="color: var(--primary); border-color: var(--primary);">
+                            <i class="fa-solid fa-tools"></i>
+                        </div>
+                        <h3 style="color: var(--text-main);">Prototyping</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Rapid MVP development & industry standards.</p>
+                    </div>
+                    <div class="flow-step">
+                        <div class="icon-circle" style="color: #22c55e; border-color: #22c55e;">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                        <h3 style="color: var(--text-main);">Pitching</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Storytelling & presentation skills for funding.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section class="section bg-surface" id="schedule">
+            <div class="container">
+                <div class="text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">Hackathon Day <span style="color: var(--primary)">Schedule</span></h2>
+                    <p style="color: var(--text-muted);">March 6, 2026</p>
+                </div>
+                
+                <div style="max-width: 700px; margin: 0 auto;">
+                    <!-- Schedule Item 1 -->
+                    <div class="timeline-item">
+                        <div class="timeline-line">
+                            <div class="timeline-dot" style="border-color: #22c55e;"></div>
+                            <div class="timeline-bar"></div>
+                        </div>
+                        <div style="padding-bottom: 2rem;">
+                            <span style="color: #22c55e; font-family: monospace; font-weight: bold; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">09:00 - 10:00</span>
+                            <h3 style="margin-top: 8px; color: var(--text-main);">Registration & Inauguration</h3>
+                            <p style="color: var(--text-muted); margin-top: 4px;">Check-in followed by Hackathon Briefing.</p>
+                        </div>
+                    </div>
+                    <!-- Schedule Item 2 -->
+                    <div class="timeline-item">
+                        <div class="timeline-line">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-bar"></div>
+                        </div>
+                        <div style="padding-bottom: 2rem;">
+                            <span style="color: var(--secondary); font-family: monospace; font-weight: bold; background: #dbeafe; padding: 2px 8px; border-radius: 4px;">10:00 - 18:00</span>
+                            <h3 style="margin-top: 8px; color: var(--text-main);">Development & Mentoring</h3>
+                            <p style="color: var(--text-muted); margin-top: 4px;">Session 1 & 2. Lunch break at 13:00.</p>
+                        </div>
+                    </div>
+                    <!-- Schedule Item 3 -->
+                    <div class="timeline-item">
+                        <div class="timeline-line">
+                            <div class="timeline-dot" style="border-color: var(--primary);"></div>
+                        </div>
+                        <div style="padding-bottom: 2rem;">
+                            <span style="color: var(--primary); font-family: monospace; font-weight: bold; background: #ffedd5; padding: 2px 8px; border-radius: 4px;">18:00 - 21:00</span>
+                            <h3 style="margin-top: 8px; color: var(--text-main);">Judging & Prizes</h3>
+                            <p style="color: var(--text-muted); margin-top: 4px;">Final presentations followed by Closing Ceremony.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hosting Partners Section -->
+        <section class="section">
+            <div class="container">
+                <div class="text-center" style="margin-bottom: 3rem;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">Hosting <span style="color: var(--primary)">Partners</span></h2>
+                </div>
+                
+                <div id="hosting-partners-container" class="flex justify-center gap-8" style="flex-wrap: wrap; min-height: 100px;">
+                    <div style="width: 100%; border: 2px dashed var(--border); border-radius: 1rem; padding: 4rem; text-align: center; color: var(--text-muted);">
+                        <p>Hosting Partners to be announced</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sponsors & Partners Section -->
+        <section class="section bg-surface">
+            <div class="container">
+                <div class="text-center" style="margin-bottom: 3rem;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">Our <span style="color: var(--secondary)">Sponsors</span></h2>
+                </div>
+                
+                <div id="sponsors-container" style="border: 2px dashed var(--border); border-radius: 1rem; padding: 4rem; text-align: center; color: var(--text-muted);">
+                    <p>Sponsors & Partners to be announced</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- OUR TEAM SECTION -->
+        <section class="section" id="our-team">
+            <div class="container">
+                <div class="text-center" style="margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">Our <span style="color: var(--primary)">Team Members</span></h2>
+                    <p style="color: var(--text-muted); margin-top: 1rem;">Meet the visionaries behind AirFoxer Innovation Hackathon.</p>
+                </div>
+                
+                <div id="team-members-container" class="grid grid-4">
+                    <!-- Dynamic Team Cards from Firebase -->
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; border: 2px dashed var(--border); border-radius: 1rem; color: var(--text-muted);">
+                        Loading our amazing team...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT & VENUE SECTION -->
+        <section class="section" id="contact">
+            <div class="container">
+                <div class="grid grid-2 items-center gap-8">
+                    <!-- Contact Info -->
+                    <div>
+                        <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 1.5rem;">Contact & <span style="color: var(--primary)">Venue</span></h2>
+                        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.1rem;">Have questions or need assistance? Reach out to our organizing team or visit us at the venue.</p>
+                        
+                        <div class="flex flex-col gap-6">
+                            <!-- Location -->
+                            <div class="flex items-center gap-4">
+                                <div class="contact-icon-circle" style="color: var(--primary); border-color: var(--primary);">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 style="color: var(--text-main);">Location</h4>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem;">Ground Floor, VTU-VRIF-TCOE Building,<br> 1st Main Road, RHCS Layout,<br> Annapoorneshwari Nagar, Naagarabhaavi,<br> Bengaluru, Karnataka 560091</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="flex items-center gap-4">
+                                <div class="contact-icon-circle" style="color: var(--secondary); border-color: var(--secondary);">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h4 style="color: var(--text-main);">Email Support</h4>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem;">airfoxersmps@gmail.com</p>
+                                </div>
+                            </div>
+                            
+                            <!-- WhatsApp -->
+                            <div class="flex items-center gap-4">
+                                <div class="contact-icon-circle" style="color: #22c55e; border-color: #22c55e;">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </div>
+                                <div>
+                                    <h4 style="color: var(--text-main);">WhatsApp</h4>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem;">Join our community for instant help.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Placeholder -->
+                    <div style="border-radius: 1.5rem; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 15px -3px var(--shadow-color); height: 400px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center;">
+                        <div class="text-center p-8" style="width: 100%;">
+                            <i class="fa-solid fa-map-location-dot" style="font-size: 3rem; color: var(--secondary); opacity: 0.5; margin-bottom: 1rem;"></i>
+                            <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Venue Map</h3>
+                            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">.</p>
+                            <!-- Interactive map will be loaded once venue is finalized -->
+                            <button class="btn-secondary">View on Google Maps</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+                <div class="logo">
+                    <img src="AirFoxer logo.jpeg" alt="AirFoxer Logo" style="width: 40px; height: 40px; object-fit: contain;">
+                    <span>AirFoxer Innovation</span>
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.9rem;">
+                    © 2026 AirFoxer Innovation Hackathon. All rights reserved.
+                </div>
+                <div class="flex gap-6">
+                    <a href="#" style="color: var(--text-muted); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fa-brands fa-github fa-lg"></i></a>
+                    <a href="https://chat.whatsapp.com/JNX4osphTQw7PBHPDXdqDY" target="_blank" style="color: var(--text-muted); transition: color 0.2s;" onmouseover="this.style.color='#25D366'" onmouseout="this.style.color='var(--text-muted)'"><i class="fa-brands fa-whatsapp fa-lg"></i></a>
+                    <a href="#" style="color: var(--text-muted); transition: color 0.2s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fa-solid fa-users fa-lg"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ============================================
+         LEAD LOGIN VIEW
+         ============================================ -->
+    <div id="lead-login-view" class="auth-container hidden">
+        <div class="auth-card" style="max-width: 500px; padding: 3rem; border-top: 5px solid var(--primary);">
+            
+            <div class="text-center mb-8">
+                <div style="width: 60px; height: 60px; background: #fff7ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                    <i class="fa-solid fa-user-tie" style="font-size: 1.5rem; color: var(--primary);"></i>
+                </div>
+                <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-main); line-height: 1.2;">Lead Access <br><span class="gradient-text">Portal</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">Manage your team and project submissions.</p>
+            </div>
+
+            <!-- Google Sign-In Button -->
+            <div style="margin-bottom: 1.5rem;">
+                <button id="firebase-google-btn" style="width:100%; padding:14px; background:white; border:2px solid #e2e8f0; border-radius:12px; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:center; gap:12px;">
+                    <img src="https://img.icons8.com/color/24/000000/google-logo.png" alt="Google">
+                    <span>Continue with Google</span>
+                </button>
+            </div>
+
+            <div class="divider">OR USE EMAIL</div>
+
+            <!-- Email Login Form -->
+            <form id="lead-email-form">
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-envelope mr-2"></i>Email Address</label>
+                    <input type="email" class="form-input" id="lead-email" placeholder="lead@university.edu" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-lock mr-2"></i>Password</label>
+                    <input type="password" class="form-input" id="lead-pass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+                    Enter Dashboard <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>
+                </button>
+            </form>
+
+            <!-- Back to Main Page -->
+            <div class="mt-8 flex justify-center border-t border-slate-100 pt-6">
+                <button class="nav-btn" onclick="switchView('landing')" style="font-size: 0.9rem;">
+                    <i class="fa-solid fa-chevron-left mr-2"></i> Back to Main Page
+                </button>
+            </div>
+
+            <!-- Close Button -->
+            <button onclick="switchView('landing')" style="position: absolute; top: 25px; right: 25px; background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                <i class="fa-solid fa-xmark fa-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         TEAM MEMBER LOGIN VIEW (DISABLED)
+         ============================================ -->
+    <div id="member-hub-auth-view" class="auth-container hidden">
+        <div class="auth-card" style="max-width: 500px; padding: 3rem; border-top: 5px solid var(--primary); text-align: center; position: relative;">
+            
+            <div style="width: 70px; height: 70px; background: #fff7ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--primary);">
+                <i class="fa-solid fa-certificate" style="font-size: 1.8rem; color: var(--primary);"></i>
+            </div>
+
+            <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem;">Certification <br><span class="gradient-text">Notice</span></h2>
+            
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem;">
+                <p style="color: var(--text-main); font-weight: 600; line-height: 1.6; margin-bottom: 8px;">
+                    Member login is currently disabled. 
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
+                    Please <strong>ask your Team Lead</strong> to download the certifications from their dashboard and share them with the squad.
+                </p>
+            </div>
+
+            <!-- Close Button -->
+            <button onclick="switchView('landing')" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                <i class="fa-solid fa-xmark fa-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         REGISTER VIEW (Restricted to Leads)
+         ============================================ -->
+    <div id="register-view" class="auth-container hidden">
+        <div class="auth-card" style="max-width: 850px; padding: 2.5rem; border-top: 5px solid var(--secondary);">
+            
+            <!-- Step Indicator -->
+            <div class="flex justify-center items-center gap-4 mb-8">
+                <span class="px-4 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Step 1: Auth ✅</span>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                <span class="px-4 py-1 bg-blue-600 text-white rounded-full text-xs font-bold shadow-lg shadow-blue-200">Step 2: Team & Theme ⚡</span>
+            </div>
+
+            <div class="text-center mb-8">
+                <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">Finalize Team <span class="gradient-text">Registration</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Lead Account: <span id="lead-display-info" class="font-bold">...</span></p>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="register-form">
+                <!-- Team Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                    <div class="form-group">
+                        <label class="form-label text-xs uppercase tracking-widest text-slate-500">Official Team Name</label>
+                        <input type="text" class="form-input shadow-sm" id="reg-team-name" required placeholder="The Innovators" style="border: 2px solid #e2e8f0; height: 50px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-xs uppercase tracking-widest text-slate-500">College / Organization</label>
+                        <input type="text" class="form-input shadow-sm" id="reg-org" required placeholder="University Name" style="border: 2px solid #e2e8f0; height: 50px;">
+                    </div>
+                </div>
+
+                <!-- Teammate Information -->
+                <div class="reg-section-title mb-4" style="font-size: 0.9rem; color: var(--secondary);"><i class="fa-solid fa-users mr-2"></i> Teammate Information</div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <!-- Member 1 (Lead) -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="font-bold text-[10px] text-slate-400 uppercase mb-2 block">Member 01 (Lead)</label>
+                        <input type="text" class="form-input mb-2 text-sm" id="reg-m1-name" placeholder="Full Name" required>
+                        <div class="flex gap-2">
+                            <input type="email" class="form-input text-sm" id="reg-m1-email" placeholder="Email" required>
+                            <input type="tel" class="form-input text-sm" id="reg-m1-phone" placeholder="Phone" required>
+                        </div>
+                    </div>
+                    <!-- Member 2 -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="font-bold text-[10px] text-slate-400 uppercase mb-2 block">Member 02</label>
+                        <input type="text" class="form-input mb-2 text-sm" id="reg-m2-name" placeholder="Full Name" required>
+                        <div class="flex gap-2">
+                            <input type="email" class="form-input text-sm" id="reg-m2-email" placeholder="Email" required>
+                            <input type="tel" class="form-input text-sm" id="reg-m2-phone" placeholder="Phone" required>
+                        </div>
+                    </div>
+                    <!-- Member 3 -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="font-bold text-[10px] text-slate-400 uppercase mb-2 block">Member 03</label>
+                        <input type="text" class="form-input mb-2 text-sm" id="reg-m3-name" placeholder="Full Name" required>
+                        <div class="flex gap-2">
+                            <input type="email" class="form-input text-sm" id="reg-m3-email" placeholder="Email" required>
+                            <input type="tel" class="form-input text-sm" id="reg-m3-phone" placeholder="Phone" required>
+                        </div>
+                    </div>
+                    <!-- Member 4 -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="font-bold text-[10px] text-slate-400 uppercase mb-2 block">Member 04</label>
+                        <input type="text" class="form-input mb-2 text-sm" id="reg-m4-name" placeholder="Full Name" required>
+                        <div class="flex gap-2">
+                            <input type="email" class="form-input text-sm" id="reg-m4-email" placeholder="Email" required>
+                            <input type="tel" class="form-input text-sm" id="reg-m4-phone" placeholder="Phone" required>
+                        </div>
+                    </div>
+                    <!-- Member 5 -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="font-bold text-[10px] text-slate-400 uppercase mb-2 block">Member 05</label>
+                        <input type="text" class="form-input mb-2 text-sm" id="reg-m5-name" placeholder="Full Name" required>
+                        <div class="flex gap-2">
+                            <input type="email" class="form-input text-sm" id="reg-m5-email" placeholder="Email" required>
+                            <input type="tel" class="form-input text-sm" id="reg-m5-phone" placeholder="Phone" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Focus -->
+                <div class="reg-section-title mb-4" style="font-size: 0.9rem; color: var(--primary);"><i class="fa-solid fa-rocket mr-2"></i> Project Focus</div>
+                <div class="form-group mb-8">
+                    <label class="form-label text-xs font-bold text-slate-600">Choose Hackathon Theme</label>
+                    <select class="form-select" id="reg-theme" required 
+                            style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--primary); background: #fff; cursor: pointer;">
+                        <option value="" disabled selected>-- Select Your Theme --</option>
+                        <option value="Intelligent Energy">Intelligent Energy & Power Systems</option>
+                        <option value="Sustainable Transport">Sustainable Transport (EV & Mobility)</option>
+                        <option value="Connected Infrastructure">Connected Infrastructure (IoT & Digital Networks)</option>
+                        <option value="Industry 5.0">Industry 5.0 (AI & Smart Automation)</option>
+                        <option value="Open Innovation">Open Innovation (General Breakthroughs)</option>
+                    </select>
+                </div>
+
+                <!-- Confirmation Checkbox - REMOVED FEMALE LEAD REQUIREMENT -->
+                <div style="background: #fff7ed; padding: 1.25rem; border-radius: 15px; border: 1px solid #fed7aa; margin-bottom: 2rem;">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required class="mt-1" style="transform: scale(1.2);">
+                        <span style="font-size: 0.8rem; color: #9a3412; line-height: 1.4;">
+                            <strong>Confirmation:</strong> I confirm that all information provided is correct and I am ready to generate the <strong>Team Code</strong> and <strong>Member IDs</strong> for my squad.
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-primary shadow-xl" style="width: 100%; justify-content: center; height: 55px; font-size: 1.1rem; border-radius: 12px;">
+                    Complete Registration <i class="fa-solid fa-circle-check ml-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================
+         TEAM DASHBOARD VIEW (Team Lead Only) - CLEANED VERSION
+         ONLY ESSENTIAL SECTIONS KEPT
+         ============================================ -->
+    <div id="dashboard-view" class="hidden">
+        <div class="dashboard-container">
+            
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="width: 55px; height: 55px; background: #fff7ed; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-rocket" style="font-size: 1.3rem; color: #f97316;"></i>
+                    </div>
+                    <div>
+                        <h1 id="dash-team-name" style="font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0;">Loading...</h1>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                            <span style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Selected Track:</span>
+                            <span id="dash-theme" style="font-size: 0.85rem; font-weight: 700; color: #f97316;">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="dash-status-badge" class="payment-badge payment-pending">
+                    Pending Registration
+                </div>
+            </div>
+
+            <!-- Dashboard Grid - Row 1 -->
+            <div class="grid grid-2 gap-6 dashboard-section">
+                <!-- Team Roster Card -->
+                <div class="card">
+                    <h3 style="font-size: 0.9rem; font-weight: 800; color: #1e293b; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-users" style="color: #3b82f6;"></i> Team Roster
+                    </h3>
+                    <div id="team-members-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Team members will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Access Portal Card -->
+                <div class="card" style="border-top: 4px solid #3b82f6;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div>
+                            <h3 style="font-size: 0.9rem; font-weight: 800; color: #1e293b; margin: 0;">Access Portal</h3>
+                            <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Generate credentials for member login.</p>
+                        </div>
+                        <button id="gen-btn" onclick="generateAccessCodes()" class="btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #1e293b; color: #fff;">
+                            Generate
+                        </button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <span style="font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px;">Team Login Code</span>
+                            <div id="display-team-code" style="font-size: 1.3rem; font-weight: 900; color: #0f172a; font-family: monospace;">----</div>
+                        </div>
+                        <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <span style="font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px;">Access Password</span>
+                            <div id="display-team-pass" style="font-size: 1.3rem; font-weight: 900; color: #0f172a; font-family: monospace;">••••</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAYMENT SECTION -->
+            <div class="card payment-section dashboard-section" style="border-color: var(--primary);">
+                <div class="flex items-center gap-4" style="margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-credit-card" style="font-size: 2rem; color: var(--primary);"></i>
+                    <div>
+                        <h2 style="color: var(--text-main);">Payment & Verification</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Complete payment to get your team verified for the hackathon.</p>
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="payment-info">
+                    <h4><i class="fa-solid fa-info-circle"></i> Payment Instructions</h4>
+                    
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <div style="display: inline-block; padding: 1rem; background: white; border-radius: 12px; border: 2px solid var(--primary);">
+                            <!-- DYNAMIC QR CODE CONTAINER -->
+                            <div id="payment-qr-code" style="width: 180px; height: 180px; margin: 0 auto;"></div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                                Scan to pay via UPI
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <ul>
+                        <li><i class="fa-solid fa-rupee-sign"></i> <strong>Amount:</strong> ₹2050 per team</li>
+                        <li><i class="fa-solid fa-mobile-alt"></i> <strong>UPI ID:</strong> <span style="color: var(--primary); font-weight: 700;">9108950128-2@ybl</span></li>
+                        <li><i class="fa-solid fa-user-tie"></i> <strong>UPI Name:</strong> Shiva Bhalke</li>
+                        <li><i class="fa-solid fa-exclamation-circle"></i> <strong>Important:</strong> After payment, save the transaction receipt with <strong>UTR Number</strong></li>
+                        <li><i class="fa-solid fa-clipboard-check"></i> <strong>Verification:</strong> Submit UTR below for manual verification</li>
+                    </ul>
+                    
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: #fff7ed; border-radius: 8px; border-left: 4px solid var(--primary);">
+                        <p style="margin: 0; font-size: 0.85rem; color: #9a3412;">
+                            <i class="fa-solid fa-lightbulb"></i> <strong>Note:</strong> UTR is a 12-digit reference number found in your payment receipt
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Payment Status -->
+                <div id="payment-status-section" style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--text-main); margin-bottom: 1rem;">Payment Status</h4>
+                    <div id="payment-status-display" style="padding: 1rem; background: #f8fafc; border-radius: 0.75rem; border: 1px solid #e2e8f0;">
+                        <p style="color: var(--text-muted);">No payment submitted yet.</p>
+                    </div>
+                </div>
+
+                <!-- UTR Submission Form -->
+                <div id="utr-submission-form" style="margin-top: 1.5rem; display: none;">
+                    <h4 style="color: var(--text-main); margin-bottom: 1rem;">Submit UTR Number</h4>
+                    <form id="utr-form">
+                        <div class="form-group">
+                            <label class="form-label">UTR (Unique Transaction Reference) Number</label>
+                            <div class="utr-input-group">
+                                <input type="text" class="form-input" id="utr-number" placeholder="Enter 12-digit UTR number" maxlength="12" required>
+                                <button type="submit" class="btn-success" style="padding: 12px 24px;">
+                                    Submit UTR
+                                </button>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+                                <i class="fa-solid fa-lightbulb"></i> UTR can be found in your bank transaction receipt or mobile banking app.
+                            </p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Payment Action Buttons -->
+                <div id="payment-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button id="submit-payment-btn" class="btn-success" onclick="showUTRForm()">
+                        <i class="fa-solid fa-money-bill-wave"></i> Submit Payment Details
+                    </button>
+                    <button class="btn-secondary" onclick="downloadPaymentReceipt()">
+                        <i class="fa-solid fa-download"></i> Download Payment Instructions
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR CODE SECTION (Visible only when verified) -->
+            <div id="qr-section" class="card" style="display: none; border-color: var(--success); margin-bottom: 2rem;">
+                <div class="flex items-center gap-4" style="margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-qrcode" style="font-size: 2rem; color: var(--success);"></i>
+                    <div>
+                        <h2 style="color: var(--text-main);">Digital Pass</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Your team is verified! Download the QR code for event entry.</p>
+                    </div>
+                </div>
+
+                <div class="qr-container">
+                    <div id="qr-code" class="qr-code"></div>
+                    <div class="qr-details">
+                        <h4 id="qr-team-name">Team Name</h4>
+                        <p id="qr-team-code">Team Code: ---</p>
+                        <p id="qr-event-date">Event Date: March 9, 2026</p>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">
+                            <i class="fa-solid fa-info-circle"></i> Show this QR code at the registration desk for verification.
+                        </p>
+                    </div>
+                    <button class="btn-success" onclick="downloadQRCode()" style="margin-top: 1.5rem;">
+                        <i class="fa-solid fa-download"></i> Download QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Project Submission Section - UPDATED: Only links field active -->
+            <div class="card dashboard-section" style="margin-bottom: 2rem; border-color: var(--secondary);">
+                <div class="flex items-center gap-4" style="margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: var(--secondary);"></i>
+                    <div>
+                        <h2 style="color: var(--text-main);">Project Submission</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Please add all files, reports, and PPT to a Google Drive folder and submit the link below.</p>
+                    </div>
+                </div>
+                <form id="submission-form" class="grid grid-2">
+                    <!-- Disabled file upload options - kept in code but disabled -->
+                    <div class="form-group">
+                        <label class="form-label">Project Files (.zip, .pdf, etc.) <span style="color: var(--text-muted); font-size: 0.7rem;">(Disabled - use Drive link)</span></label>
+                        <input type="file" class="form-input" id="sub-files" disabled style="background-color: #e2e8f0; opacity: 0.7;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project Photos / Screenshots <span style="color: var(--text-muted); font-size: 0.7rem;">(Disabled - use Drive link)</span></label>
+                        <input type="file" class="form-input" id="sub-photos" multiple accept="image/*" disabled style="background-color: #e2e8f0; opacity: 0.7;">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Google Drive / Cloud Link (required)</label>
+                        <textarea class="form-input" id="sub-links" placeholder="Google Drive link containing all project files, reports, PPT, etc." rows="3" required></textarea>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <button type="button" id="sub-btn" class="btn-primary" style="width: 100%; justify-content: center;" onclick="handleProjectSubmission()"><span>Submit Project Link</span></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Team Certifications - UPDATED with message -->
+            <div class="card dashboard-section" style="border-color: var(--primary);">
+                <div class="flex items-center gap-4" style="margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-award" style="font-size: 2rem; color: var(--primary);"></i>
+                    <div>
+                        <h2 style="color: var(--text-main);">Team Certifications</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Information about participation certificates.</p>
+                    </div>
+                </div>
+                <div style="padding: 2rem; background: #f8fafc; border-radius: 1rem; border: 1px dashed var(--border); text-align: center;">
+                    <i class="fa-solid fa-certificate" style="font-size: 3rem; color: var(--primary); opacity: 0.5; margin-bottom: 1rem;"></i>
+                    <p style="color: var(--text-main); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        Certificates will be issued after March 9th, 2026
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        If possible, certificates will be sent via email to all registered team members.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Back to Landing -->
+            <div style="text-align: center; margin: 3rem 0;">
+                <button class="btn-secondary" onclick="switchView('landing')">Back to Landing Page</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ALL NOTIFICATIONS MODAL
+         ============================================ -->
+    <div id="all-notifications-modal" class="modal-backdrop" style="display: none; z-index: 10000;">
+        <div class="modal" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2 class="modal-title" style="color: var(--primary);">
+                    <i class="fas fa-bell"></i> All Notifications
+                </h2>
+                <button class="modal-close" onclick="closeAllNotificationsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="all-notifications-list" style="padding: 20px;">
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                    <p style="margin-top: 16px; color: var(--text-muted);">Loading notifications...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         COMPLETE FIREBASE BACKEND SCRIPT (KEPT EXACTLY AS BEFORE)
+         ============================================ -->
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCipUkkNySML4U1VI2fH1RyWgXYqvDMPRQ",
+            authDomain: "airfoxer-hackathon.firebaseapp.com",
+            projectId: "airfoxer-hackathon",
+            storageBucket: "airfoxer-hackathon.firebasestorage.app",
+            messagingSenderId: "51363230854",
+            appId: "1:51363230854:web:4a33c8a92ebebb41b5cd07"
+        };
+
+        // ============================================
+        // INITIALIZE FIREBASE
+        // ============================================
+        let db, auth, storage;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("✅ Firebase initialized successfully");
+            
+            // Initialize services
+            db = firebase.firestore();
+            auth = firebase.auth();
+            storage = firebase.storage();
+            
+            // Enable offline persistence
+            db.enablePersistence().catch((err) => {
+                console.log("Firebase persistence error:", err);
+            });
+        } catch (error) {
+            console.error("❌ Firebase initialization error:", error);
+            notify("Firebase connection failed. Please check configuration.", "error");
+        }
+
+        // ============================================
+        // DATABASE COLLECTIONS
+        // ============================================
+        const COLLECTIONS = {
+            TEAMS: 'teams',
+            USERS: 'users',
+            NOTIFICATIONS: 'notifications',
+            SETTINGS: 'settings',
+            SUBMISSIONS: 'submissions',
+            PAYMENTS: 'payments'
+        };
+        
+        // ============================================
+        // GLOBAL SETTINGS
+        // ============================================
+        let appSettings = {
+            eventDate: 'March 6, 2026 09:00:00',
+            deadlineDate: '2026-02-22',
+            maxTeams: 50,
+            registrationOpen: true,
+            themes: []
+        };
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        let currentUser = null;
+
+        /**
+         * Initialize auth state listener
+         * Handles user login/logout and updates UI accordingly
+         */
+        auth.onAuthStateChanged(async (user) => {
+            console.log("🔥 AUTH STATE CHANGED:", user ? `Logged in as ${user.email}` : "Logged out");
+            
+            currentUser = user;
+            if (user) {
+                console.log("User logged in:", user.email || user.phoneNumber);
+                
+                // Check if user exists in users collection
+                const userDoc = await db.collection(COLLECTIONS.USERS).doc(user.uid).get();
+                if (!userDoc.exists) {
+                    // Create user record
+                    await createUserRecord(user);
+                }
+                
+                // Update UI based on role
+                const userData = userDoc.exists ? userDoc.data() : { role: 'lead' };
+                handleAuthSuccess(userData.role || 'lead', user.email || user.phoneNumber);
+            } else {
+                console.log("User logged out");
+                updateAuthUI();
+            }
+        });
+
+        // ============================================
+        // VIEW CONTROLLER
+        // ============================================
+        
+        /**
+         * Switches between different views (landing, login, dashboard, etc.)
+         * @param {string} v - View ID to switch to
+         * @param {string} sectionId - Optional section to scroll to in landing view
+         */
+        async function switchView(v, sectionId = null) {
+            // Define all views
+            const views = ['landing', 'lead-login', 'member-hub-auth', 'register', 'dashboard'];
+            
+            // Hide all using only class-based approach
+            views.forEach(id => {
+                const el = document.getElementById(id + '-view');
+                if (el) {
+                    el.classList.add('hidden');
+                    // Remove any inline display styles that might interfere
+                    el.style.display = '';
+                }
+            });
+            
+            // Show target - use class-based approach only
+            const targetEl = document.getElementById(v + '-view');
+            if (targetEl) {
+                targetEl.classList.remove('hidden');
+                // Don't set inline display - let CSS handle it
+            }
+
+            // Data Triggers
+            if (v === 'dashboard') loadDashboardData();
+
+            // Scroll Fix
+            if (v === 'landing' && sectionId) {
+                setTimeout(() => {
+                    const element = document.getElementById(sectionId);
+                    if(element) element.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            } else {
+                window.scrollTo(0, 0);
+            }
+        }
+
+        /**
+         * Handles successful authentication
+         * @param {string} role - User role (lead or member)
+         * @param {string} identifier - User email or phone
+         */
+        async function handleAuthSuccess(role, identifier = "") {
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userIdentifier', identifier);
+            updateAuthUI();
+            
+            if (role === 'lead') {
+                try {
+                    const userDoc = await db.collection(COLLECTIONS.USERS).doc(currentUser.uid).get();
+                    if (userDoc.exists && userDoc.data().teamId) {
+                        notify("Welcome back, Lead!", "success");
+                        // Direct switch to dashboard without showing landing
+                        switchView('dashboard');
+                    } else {
+                        notify("Access Verified. Please register your team.", "success");
+                        switchView('register');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    switchView('landing');
+                }
+            }
+        }
+
+        /**
+         * Create user record in Firestore
+         * @param {Object} user - Firebase user object
+         */
+        async function createUserRecord(user) {
+            try {
+                const userData = {
+                    uid: user.uid,
+                    email: user.email || null,
+                    phoneNumber: user.phoneNumber || null,
+                    displayName: user.displayName || null,
+                    role: 'lead',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection(COLLECTIONS.USERS).doc(user.uid).set(userData);
+                console.log("User record created:", user.uid);
+            } catch (error) {
+                console.error("Error creating user record:", error);
+            }
+        }
+
+        // ============================================
+        // AUTH: TEAM LEAD EMAIL/PASSWORD
+        // ============================================
+        document.getElementById('lead-email-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('lead-email').value.trim();
+            const password = document.getElementById('lead-pass').value;
+            
+            if (!email || !password) {
+                notify("Please enter both email and password", "error");
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log("Email login successful:", userCredential.user.uid);
+                
+                // Log login activity
+                await logActivity('LEAD_LOGIN', `Lead logged in: ${email}`);
+                
+            } catch (error) {
+                console.error("Login error:", error);
+                let message = "Login failed";
+                if (error.code === 'auth/user-not-found') {
+                    message = "No account found with this email";
+                } else if (error.code === 'auth/wrong-password') {
+                    message = "Incorrect password";
+                } else if (error.code === 'auth/invalid-email') {
+                    message = "Invalid email format";
+                } else if (error.code === 'auth/too-many-requests') {
+                    message = "Too many attempts. Try again later.";
+                }
+                notify(message, "error");
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        // ============================================
+        // AUTH: GOOGLE SIGN IN
+        // ============================================
+        document.getElementById('firebase-google-btn').onclick = async function() {
+            try {
+                console.log("Starting Firebase Google sign-in...");
+                
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                console.log("✅ Firebase Google sign-in successful:", result.user.email);
+                
+                notify(`Welcome ${result.user.displayName || result.user.email}!`, "success");
+                handleAuthSuccess('lead', result.user.email);
+                
+            } catch (error) {
+                console.error("❌ Firebase Google sign-in error:", error.code, error.message);
+                
+                let message = "Google sign-in failed";
+                if (error.code === 'auth/popup-blocked') {
+                    message = "Popup blocked. Please allow popups for this site.";
+                } else if (error.code === 'auth/network-request-failed') {
+                    message = "Network error. Check your connection.";
+                }
+                
+                notify(message, "error");
+            }
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        /**
+         * Shows or hides loading state on buttons
+         * @param {boolean} show - Whether to show loading
+         */
+        function showLoading(show) {
+            const btn = document.querySelector('.btn-primary:disabled');
+            if (btn) {
+                btn.innerHTML = show ? 
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Processing...' : 
+                    btn.getAttribute('data-original-text') || 'Submit';
+            }
+        }
+
+        /**
+         * Logs user activity to Firestore
+         * @param {string} action - Action being logged
+         * @param {string} details - Additional details
+         */
+        async function logActivity(action, details) {
+            try {
+                await db.collection('logs').add({
+                    action: action,
+                    details: details,
+                    userId: currentUser?.uid || 'anonymous',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    ip: 'web-client'
+                });
+            } catch (error) {
+                console.error("Error logging activity:", error);
+            }
+        }
+
+        // ============================================
+        // TEAM REGISTRATION - UPDATED with Member 1 fix and button disable
+        // ============================================
+        document.getElementById('register-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                notify("Please login first", "error");
+                switchView('lead-login');
+                return;
+            }
+            
+            // Disable submit button to prevent double submission
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registering...';
+            
+            try {
+                // Check if user already has a team
+                const existingTeams = await db.collection(COLLECTIONS.TEAMS)
+                    .where('leadId', '==', currentUser.uid)
+                    .get();
+                
+                if (!existingTeams.empty) {
+                    notify("You already have a registered team!", "error");
+                    switchView('dashboard');
+                    return;
+                }
+                
+                const teamData = {
+                    teamName: document.getElementById('reg-team-name').value.trim(),
+                    organization: document.getElementById('reg-org').value.trim(),
+                    theme: document.getElementById('reg-theme').value,
+                    leadId: currentUser.uid,
+                    leadEmail: currentUser.email,
+                    status: 'pending',
+                    paymentStatus: 'pending',
+                    registrationDate: firebase.firestore.FieldValue.serverTimestamp(),
+                    codesGenerated: false,
+                    certsReleased: false,
+                    projectSubmitted: false,
+                    // Capture all 5 members
+                    members: [
+                        { 
+                            name: document.getElementById('reg-m1-name').value.trim() || currentUser.displayName || "Team Lead", 
+                            role: 'lead', 
+                            email: document.getElementById('reg-m1-email').value.trim() || currentUser.email,
+                            phone: document.getElementById('reg-m1-phone').value.trim() || ''
+                        },
+                        { 
+                            name: document.getElementById('reg-m2-name').value.trim(), 
+                            role: 'member', 
+                            email: document.getElementById('reg-m2-email').value.trim(),
+                            phone: document.getElementById('reg-m2-phone').value.trim() 
+                        },
+                        { 
+                            name: document.getElementById('reg-m3-name').value.trim(), 
+                            role: 'member', 
+                            email: document.getElementById('reg-m3-email').value.trim(),
+                            phone: document.getElementById('reg-m3-phone').value.trim() 
+                        },
+                        { 
+                            name: document.getElementById('reg-m4-name').value.trim(), 
+                            role: 'member', 
+                            email: document.getElementById('reg-m4-email').value.trim(),
+                            phone: document.getElementById('reg-m4-phone').value.trim() 
+                        },
+                        { 
+                            name: document.getElementById('reg-m5-name').value.trim(), 
+                            role: 'member', 
+                            email: document.getElementById('reg-m5-email').value.trim(),
+                            phone: document.getElementById('reg-m5-phone').value.trim() 
+                        }
+                    ]
+                };
+
+                // Save to Firestore
+                const docRef = await db.collection(COLLECTIONS.TEAMS).add(teamData);
+                
+                // Link Lead to this Team
+                await db.collection(COLLECTIONS.USERS).doc(currentUser.uid).update({
+                    teamId: docRef.id,
+                    role: 'lead'
+                });
+
+                notify("🎉 Team registered successfully!", "success");
+                
+                // Directly go to dashboard without showing landing
+                setTimeout(() => switchView('dashboard'), 500);
+                
+            } catch (error) {
+                console.error("Registration error:", error);
+                notify("Registration failed. Please try again.", "error");
+                // Re-enable submit button on error
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Complete Registration <i class="fa-solid fa-circle-check ml-2"></i>';
+            }
+        };
+
+        // ============================================
+        // LOAD HOSTING PARTNERS (For landing page only)
+        // ============================================
+        async function loadHostingPartners() {
+            try {
+                const partnersSnap = await db.collection('hostingPartners')
+                    .where('active', '==', true)
+                    .orderBy('order', 'asc')
+                    .get();
+                
+                const container = document.getElementById('hosting-partners-container');
+                if (container) {
+                    if (partnersSnap.empty) {
+                        container.innerHTML = '<div style="width: 100%; border: 2px dashed var(--border); border-radius: 1rem; padding: 4rem; text-align: center; color: var(--text-muted);">Hosting Partners to be announced</div>';
+                    } else {
+                        let html = '';
+                        partnersSnap.forEach(doc => {
+                            const partner = doc.data();
+                            html += `
+                                <div class="team-card" style="padding: 1.5rem;">
+                                    <div class="team-logo-container">
+                                        ${partner.logoUrl ? 
+                                            `<img src="${partner.logoUrl}" alt="${partner.name}" class="team-logo">` :
+                                            `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-surface); border-radius: 50%;">
+                                                <i class="fas fa-building" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                            </div>`
+                                        }
+                                    </div>
+                                    <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">${partner.name}</h3>
+                                    ${partner.description ? `<p style="font-size: 0.85rem; color: var(--text-muted);">${partner.description}</p>` : ''}
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading hosting partners:", error);
+            }
+        }
+
+        // ============================================
+        // LOAD SPONSORS (For landing page only)
+        // ============================================
+        async function loadSponsors() {
+            try {
+                const sponsorsSnap = await db.collection('sponsors')
+                    .where('active', '==', true)
+                    .orderBy('order', 'asc')
+                    .get();
+                
+                const container = document.getElementById('sponsors-container');
+                if (container) {
+                    if (sponsorsSnap.empty) {
+                        container.innerHTML = '<div style="border: 2px dashed var(--border); border-radius: 1rem; padding: 4rem; text-align: center; color: var(--text-muted);">Sponsors & Partners to be announced</div>';
+                    } else {
+                        let html = '<div class="grid grid-4" style="gap: 1.5rem;">';
+                        sponsorsSnap.forEach(doc => {
+                            const sponsor = doc.data();
+                            html += `
+                                <div class="team-card" style="padding: 1.5rem;">
+                                    <div class="team-logo-container">
+                                        ${sponsor.logoUrl ? 
+                                            `<img src="${sponsor.logoUrl}" alt="${sponsor.name}" class="team-logo">` :
+                                            `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-surface); border-radius: 50%;">
+                                                <i class="fas fa-hand-holding-usd" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                            </div>`
+                                        }
+                                    </div>
+                                    <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">${sponsor.name}</h3>
+                                    <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: var(--bg-surface); color: var(--primary); margin-bottom: 0.5rem;">
+                                        ${sponsor.tier || 'Partner'}
+                                    </span>
+                                    ${sponsor.description ? `<p style="font-size: 0.85rem; color: var(--text-muted);">${sponsor.description}</p>` : ''}
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        container.innerHTML = html;
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading sponsors:", error);
+            }
+        }
+
+        // ============================================
+        // LOAD TEAM MEMBERS (For landing page only)
+        // ============================================
+        async function loadTeamMembers() {
+            try {
+                const membersSnap = await db.collection('teamMembers')
+                    .where('active', '==', true)
+                    .orderBy('order', 'asc')
+                    .get();
+                
+                const container = document.getElementById('team-members-container');
+                if (container) {
+                    if (membersSnap.empty) {
+                        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; border: 2px dashed var(--border); border-radius: 1rem; color: var(--text-muted);">Our amazing team will be announced soon...</div>';
+                    } else {
+                        let html = '';
+                        membersSnap.forEach(doc => {
+                            const member = doc.data();
+                            html += `
+                                <div class="team-card">
+                                    <div class="team-logo-container">
+                                        ${member.photoURL ? 
+                                            `<img src="${member.photoURL}" alt="${member.name}" class="team-logo">` :
+                                            `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-surface); border-radius: 50%;">
+                                                <i class="fas fa-user" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                            </div>`
+                                        }
+                                    </div>
+                                    <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">${member.name}</h3>
+                                    <p style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">${member.designation}</p>
+                                    ${member.bio ? `<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">${member.bio}</p>` : ''}
+                                    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 0.5rem;">
+                                        ${member.linkedin ? `<a href="${member.linkedin}" target="_blank" style="color: var(--text-muted);"><i class="fab fa-linkedin fa-lg"></i></a>` : ''}
+                                        ${member.twitter ? `<a href="${member.twitter}" target="_blank" style="color: var(--text-muted);"><i class="fab fa-twitter fa-lg"></i></a>` : ''}
+                                        ${member.github ? `<a href="${member.github}" target="_blank" style="color: var(--text-muted);"><i class="fab fa-github fa-lg"></i></a>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading team members:", error);
+                const container = document.getElementById('team-members-container');
+                if (container) {
+                    container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--error);">Failed to load team members</div>';
+                }
+            }
+        }
+
+        // ============================================
+        // LOAD SETTINGS FROM FIREBASE
+        // ============================================
+        async function loadSettings() {
+            try {
+                console.log("📡 Loading settings from Firebase...");
+                
+                const settingsDoc = await db.collection(COLLECTIONS.SETTINGS).doc('config').get();
+                
+                if (settingsDoc.exists) {
+                    const data = settingsDoc.data();
+                    console.log("✅ Settings loaded:", data);
+                    
+                    // Update global appSettings with values from Firebase
+                    if (data.eventDate) {
+                        appSettings.eventDate = data.eventDate;
+                    }
+                    if (data.deadlineDate) {
+                        appSettings.deadlineDate = data.deadlineDate;
+                    }
+                    if (data.maxTeams) {
+                        appSettings.maxTeams = data.maxTeams;
+                    }
+                    if (data.registrationOpen !== undefined) {
+                        appSettings.registrationOpen = data.registrationOpen;
+                    }
+                    if (data.themes) {
+                        appSettings.themes = data.themes;
+                    }
+                    
+                    // Update UI with loaded settings
+                    updateCountdownDate();
+                    updateRegistrationDeadline();
+                    
+                } else {
+                    console.log("⚠️ No settings document found, using defaults");
+                }
+                
+            } catch (error) {
+                console.error("❌ Error loading settings:", error);
+            }
+        }   
+
+        // ============================================
+        // UPDATE COUNTDOWN WITH LOADED DATE
+        // ============================================
+        function updateCountdownDate() {
+            // This will be called after settings are loaded
+            console.log("🕒 Countdown will use date:", appSettings.eventDate);
+        }
+
+        // ============================================
+        // UPDATE REGISTRATION DEADLINE DISPLAY
+        // ============================================
+        function updateRegistrationDeadline() {
+            const deadlineElements = document.querySelectorAll('.status-pill span');
+            deadlineElements.forEach(el => {
+                if (el.textContent.includes('Registration Deadline')) {
+                    // Format the date nicely
+                    const date = new Date(appSettings.deadlineDate + 'T23:59:59');
+                    const formattedDate = date.toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    el.textContent = `Registration Deadline: ${formattedDate}`;
+                }
+            });
+        }
+
+        // ============================================
+        // PAYMENT SYSTEM
+        // ============================================
+        
+        /**
+         * Loads payment status for a team
+         * @param {string} teamId - Team ID to load payment for
+         * @returns {Promise<Object>} Payment data
+         */
+        async function loadPaymentStatus(teamId) {
+            try {
+                // Use simpler query to avoid Firebase index requirement
+                const paymentsSnapshot = await db.collection(COLLECTIONS.PAYMENTS)
+                    .where('teamId', '==', teamId)
+                    .get();
+                
+                if (paymentsSnapshot.empty) {
+                    document.getElementById('payment-status-display').innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-clock" style="color: var(--payment-pending);"></i>
+                            <div>
+                                <strong style="color: var(--text-main);">No Payment Submitted</strong>
+                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">Please submit your payment UTR to get verified.</p>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('utr-submission-form').style.display = 'block';
+                    document.getElementById('submit-payment-btn').style.display = 'none';
+                    return null;
+                }
+                
+                // Get the most recent payment manually
+                let latestPayment = null;
+                let latestDate = null;
+                
+                paymentsSnapshot.forEach(doc => {
+                    const payment = doc.data();
+                    if (!latestPayment || (payment.submittedAt && 
+                        payment.submittedAt.toDate().getTime() > latestDate)) {
+                        latestPayment = payment;
+                        latestDate = payment.submittedAt ? payment.submittedAt.toDate().getTime() : 0;
+                    }
+                });
+                
+                const payment = latestPayment;
+                
+                let statusHTML = '';
+                let badgeClass = '';
+                
+                switch(payment.status) {
+                    case 'pending':
+                        statusHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-clock" style="color: var(--payment-pending);"></i>
+                                <div>
+                                    <strong style="color: var(--text-main);">Payment Under Review</strong>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+                                        UTR: ${payment.utrNumber}<br>
+                                        Submitted: ${formatDate(payment.submittedAt)}
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        badgeClass = 'payment-pending';
+                        break;
+                        
+                    case 'verified':
+                        statusHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-check-circle" style="color: var(--payment-verified);"></i>
+                                <div>
+                                    <strong style="color: var(--text-main);">Payment Verified ✓</strong>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+                                        UTR: ${payment.utrNumber}<br>
+                                        Verified by Admin on: ${formatDate(payment.verifiedAt)}
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        badgeClass = 'payment-verified';
+                        break;
+                        
+                    case 'rejected':
+                        statusHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-times-circle" style="color: var(--payment-rejected);"></i>
+                                <div>
+                                    <strong style="color: var(--text-main);">Payment Rejected</strong>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+                                        Reason: ${payment.rejectionReason || 'Not specified'}<br>
+                                        Please submit a new UTR.
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        badgeClass = 'payment-rejected';
+                        document.getElementById('utr-submission-form').style.display = 'block';
+                        break;
+                }
+                
+                document.getElementById('payment-status-display').innerHTML = statusHTML;
+                document.getElementById('dash-status-badge').className = `payment-badge ${badgeClass}`;
+                document.getElementById('dash-status-badge').innerHTML = `
+                    <i class="fa-solid fa-${payment.status === 'verified' ? 'check' : payment.status === 'rejected' ? 'times' : 'clock'}"></i>
+                    ${payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                `;
+                
+                return payment;
+                
+            } catch (error) {
+                console.error("Error loading payment status:", error);
+                return null;
+            }
+        }
+
+        /**
+         * Shows UTR submission form
+         */
+        function showUTRForm() {
+            document.getElementById('utr-submission-form').style.display = 'block';
+            document.getElementById('submit-payment-btn').style.display = 'none';
+        }
+
+        // UTR Submission Form
+        document.getElementById('utr-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                notify("Please login first", "error");
+                return;
+            }
+            
+            const utrNumber = document.getElementById('utr-number').value.trim();
+            
+            if (utrNumber.length < 10) {
+                notify("Please enter a valid UTR number (minimum 10 digits)", "error");
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                
+                // Get team data
+                const teamsSnapshot = await db.collection(COLLECTIONS.TEAMS)
+                    .where('leadId', '==', currentUser.uid)
+                    .limit(1)
+                    .get();
+                
+                if (teamsSnapshot.empty) {
+                    notify("Team not found", "error");
+                    return;
+                }
+                
+                const teamDoc = teamsSnapshot.docs[0];
+                const teamId = teamDoc.id;
+                const teamName = teamDoc.data().teamName;
+                
+                // Create payment record
+                const paymentData = {
+                    teamId: teamId,
+                    teamName: teamName,
+                    utrNumber: utrNumber,
+                    status: 'pending',
+                    amount: 2050, // Changed from 500 to 2000 as per your requirements
+                    currency: 'INR',
+                    submittedBy: currentUser.uid,
+                    submittedByEmail: currentUser.email,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    verifiedAt: null,
+                    verifiedBy: null,
+                    rejectionReason: null
+                };
+                
+                await db.collection(COLLECTIONS.PAYMENTS).add(paymentData);
+                
+                // Update team payment status
+                await db.collection(COLLECTIONS.TEAMS).doc(teamId).update({
+                    paymentStatus: 'pending',
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Clear form
+                document.getElementById('utr-number').value = '';
+                document.getElementById('utr-submission-form').style.display = 'none';
+                
+                notify("✅ UTR submitted successfully! Admin will verify your payment soon.", "success");
+                
+                // Reload payment status
+                loadPaymentStatus(teamId);
+                
+                // Create notification for admin
+                await createAdminNotification(
+                    `New Payment Submission`,
+                    `Team "${teamName}" submitted UTR: ${utrNumber} for verification.`,
+                    'payment'
+                );
+                
+            } catch (error) {
+                console.error("Error submitting UTR:", error);
+                notify("Failed to submit UTR. Please try again.", "error");
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        /**
+         * Creates admin notification in Firestore
+         * @param {string} title - Notification title
+         * @param {string} message - Notification message
+         * @param {string} type - Notification type
+         */
+        async function createAdminNotification(title, message, type) {
+            try {
+                await db.collection(COLLECTIONS.NOTIFICATIONS).add({
+                    title: title,
+                    message: message,
+                    type: type,
+                    isPublic: false,
+                    isAdmin: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false
+                });
+            } catch (error) {
+                console.error("Error creating admin notification:", error);
+            }
+        }
+
+        /**
+         * Downloads payment receipt as text file
+         */
+        function downloadPaymentReceipt() {
+            const receiptContent = `
+        AIRFOXER INNOVATION HACKATHON 2026
+        ====================================
+        
+        PAYMENT INSTRUCTIONS
+        --------------------
+        Amount: ₹2050 per team (per team registration)
+        
+        METHOD 1: UPI Payment (Preferred)
+        --------------------------------
+        UPI ID: 9108950128-2@ybl
+        UPI Name: Shiva Bhalke
+        
+        IMPORTANT INSTRUCTIONS:
+        -----------------------
+        1. Scan the QR code in dashboard for instant UPI payment
+        2. After payment, save the transaction receipt
+        3. Note down the 12-digit UTR number from receipt
+        4. Submit UTR in dashboard for verification
+        5. Verification takes 24-48 hours
+        
+        WHAT IS UTR?
+        ------------
+        UTR (Unique Transaction Reference) is a 12-digit number that:
+        - Appears on your bank statement
+        - Found in payment confirmation SMS/email
+        - Used to track your payment
+        
+        CONTACT SUPPORT:
+        ---------------
+        Email: support@airfoxer.com
+        WhatsApp: Join our community at https://chat.whatsapp.com/JNX4osphTQw7PBHPDXdqDY
+        
+        Generated on: ${new Date().toLocaleDateString()}
+        
+        *Keep this receipt for future reference*
+    `;
+    
+            const blob = new Blob([receiptContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'AirFoxer_Payment_Instructions.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // ============================================
+        // QR CODE GENERATION
+        // ============================================
+        
+        /**
+         * Generates QR code for verified teams
+         * @param {Object} teamData - Team data object
+         */
+        function generateQRCode(teamData) {
+            const qrSection = document.getElementById('qr-section');
+            if (!qrSection) return;
+            
+            // Show QR section if team is verified
+            if (teamData.status === 'verified' && teamData.paymentStatus === 'verified') {
+                qrSection.style.display = 'block';
+                
+                // Clear previous QR code
+                const qrContainer = document.getElementById('qr-code');
+                if (qrContainer) {
+                    qrContainer.innerHTML = '';
+                }
+                
+                // Use MUCH SHORTER data to avoid "code length overflow" error
+                const qrData = JSON.stringify({
+                    t: teamData.id.substring(0, 10), // Short team ID
+                    n: teamData.teamName.substring(0, 20), // Short team name
+                    c: teamData.teamCode || 'N/A',
+                    e: "AF26", // Short event code
+                    v: 1
+                });
+                
+                console.log("QR Data length:", qrData.length, "characters");
+                
+                // Generate QR code
+                try {
+                    new QRCode(qrContainer, {
+                        text: qrData,
+                        width: 200,
+                        height: 200,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch (error) {
+                    console.error("QR Code generation error:", error);
+                    qrContainer.innerHTML = `<div style="color: #ef4444; padding: 20px;">QR Code Error: ${error.message}</div>`;
+                }
+                
+                // Update QR details
+                document.getElementById('qr-team-name').textContent = teamData.teamName;
+                document.getElementById('qr-team-code').textContent = `Team Code: ${teamData.teamCode || 'N/A'}`;
+            } else {
+                qrSection.style.display = 'none';
+            }
+        }
+
+        /**
+         * Generates payment QR code for UPI
+         */
+        function generatePaymentQRCode() {
+            const qrContainer = document.getElementById('payment-qr-code');
+            if (!qrContainer) return;
+            
+            // Clear previous QR code
+            qrContainer.innerHTML = '';
+            
+            // Create UPI payment string (SHORT version)
+            const upiString = "upi://pay?pa=9108950128-2@ybl&pn=ShivaBhalke&am=2050&tn=AirFoxerHack2026";
+            
+            console.log("Payment QR Data length:", upiString.length, "characters");
+            
+            try {
+                new QRCode(qrContainer, {
+                    text: upiString,
+                    width: 180,
+                    height: 180,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                console.error("Payment QR Code error:", error);
+                qrContainer.innerHTML = `<div style="color: #ef4444; padding: 10px; font-size: 12px;">QR Error: ${error.message}</div>`;
+            }
+        }
+
+        /**
+         * Downloads QR code as PNG image
+         */
+        function downloadQRCode() {
+            const qrCanvas = document.querySelector('#qr-code canvas');
+            if (!qrCanvas) {
+                notify("QR code not available yet", "error");
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `AirFoxer_Pass_${document.getElementById('qr-team-name').textContent.replace(/\s+/g, '_')}.png`;
+            link.href = qrCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // ============================================
+        // DASHBOARD LOGIC
+        // ============================================
+        
+        /**
+         * Loads dashboard data for logged-in user
+         */
+        async function loadDashboardData() {
+            if (!currentUser) return;
+            
+            try {
+                showLoading(true);
+                
+                // 1. FETCH DATA
+                const teamsSnapshot = await db.collection(COLLECTIONS.TEAMS)
+                    .where('leadId', '==', currentUser.uid)
+                    .limit(1)
+                    .get();
+                
+                if (teamsSnapshot.empty) {
+                    document.getElementById('dash-team-name').textContent = "No team registered";
+                    return;
+                }
+                
+                const teamDoc = teamsSnapshot.docs[0];
+                const teamData = teamDoc.data();
+                teamData.id = teamDoc.id;
+                
+                // 2. SYNC IDENTITY & THEME
+                const nameEl = document.getElementById('dash-team-name');
+                if(nameEl) nameEl.textContent = teamData.teamName || 'Unnamed Team';
+                
+                const themeEl = document.getElementById('dash-theme');
+                if(themeEl) themeEl.textContent = teamData.theme || 'Not selected';
+
+                // 3. UPDATE STATUS BADGE
+                const statusBadge = document.getElementById('dash-status-badge');
+                if (statusBadge) {
+                    const status = teamData.status || 'pending';
+                    const paymentStatus = teamData.paymentStatus || 'pending';
+                    
+                    if (status === 'verified' && paymentStatus === 'verified') {
+                        statusBadge.className = 'payment-badge payment-verified';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> Verified';
+                    } else if (paymentStatus === 'pending') {
+                        statusBadge.className = 'payment-badge payment-pending';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Payment Pending';
+                    } else if (paymentStatus === 'rejected') {
+                        statusBadge.className = 'payment-badge payment-rejected';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-times"></i> Payment Rejected';
+                    } else {
+                        statusBadge.className = 'payment-badge payment-pending';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Pending Registration';
+                    }
+                }
+                
+                // 4. UPDATE TEAM ROSTER
+                const membersList = document.getElementById('team-members-list');
+                if (membersList && teamData.members) {
+                    membersList.innerHTML = teamData.members.map((member, index) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">${member.name || 'Member'}</div>
+                                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 800;">${member.email || 'No email'}</div>
+                            </div>
+                            <span style="font-size: 9px; font-weight: 900; background: ${index === 0 ? '#ffedd5' : '#f1f5f9'}; color: ${index === 0 ? '#9a3412' : '#64748b'}; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
+                                ${index === 0 ? 'Lead' : 'Member'}
+                            </span>
+                        </div>
+                    `).join('');
+                }
+
+                // 5. UPDATE CREDENTIALS (Code & Password only)
+                if (teamData.codesGenerated) {
+                    const codeEl = document.getElementById('display-team-code');
+                    const passEl = document.getElementById('display-team-pass');
+                    
+                    if(codeEl) codeEl.innerText = teamData.teamCode || '----';
+                    if(passEl) passEl.innerText = teamData.teamPassword || "••••";
+                    
+                    // Hide the generate button if already generated
+                    const genBtn = document.getElementById('gen-btn');
+                    if(genBtn) genBtn.style.display = 'none';
+                }
+
+                // 6. LOAD PAYMENT STATUS
+                const payment = await loadPaymentStatus(teamData.id);
+                
+                // 7. GENERATE PAYMENT QR CODE (always show)
+                generatePaymentQRCode();
+                
+                // 8. GENERATE EVENT QR CODE IF VERIFIED
+                if (teamData.status === 'verified' && teamData.paymentStatus === 'verified') {
+                    generateQRCode(teamData);
+                }
+                
+            } catch (error) {
+                console.error("Dashboard Error:", error);
+                notify("Failed to sync dashboard data", "error");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        /**
+         * Generates access codes for team members
+         */
+        async function generateAccessCodes() {
+            if (!currentUser) return;
+            
+            try {
+                const genBtn = document.getElementById('gen-btn');
+                genBtn.innerText = "Syncing...";
+                genBtn.disabled = true;
+
+                // Fetch team details
+                const snap = await db.collection(COLLECTIONS.TEAMS)
+                    .where('leadId', '==', currentUser.uid).get();
+                
+                if(snap.empty) return;
+                const teamDoc = snap.docs[0];
+                const teamName = teamDoc.data().teamName;
+
+                // Generate clean Team Code & Password
+                const code = teamName.replace(/\s/g, '').substring(0, 4).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+                const pass = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+                // Update Firebase
+                await db.collection(COLLECTIONS.TEAMS).doc(teamDoc.id).update({
+                    teamCode: code,
+                    teamPassword: pass,
+                    codesGenerated: true,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Refreshes the display boxes
+                document.getElementById('display-team-code').innerText = code;
+                document.getElementById('display-team-pass').innerText = pass;
+                genBtn.style.display = 'none';
+                
+                notify("Credentials Generated! Teammates can now log in.", "success");
+
+            } catch (e) {
+                console.error(e);
+                notify("Failed to generate keys", "error");
+                document.getElementById('gen-btn').disabled = false;
+                document.getElementById('gen-btn').innerText = "Generate";
+            }
+        }
+
+        /**
+         * Handles project submission with file uploads - UPDATED to only handle links
+         */
+        async function handleProjectSubmission() {
+            if (!currentUser) {
+                notify("Please login first", "error");
+                return;
+            }
+            
+            try {
+                const subBtn = document.getElementById('sub-btn');
+                subBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+                subBtn.disabled = true;
+
+                const links = document.getElementById('sub-links').value.trim();
+
+                // Validate that link is provided
+                if (!links) {
+                    notify("Please enter your Google Drive link", "error");
+                    subBtn.innerHTML = '<span>Submit Project Link</span>';
+                    subBtn.disabled = false;
+                    return;
+                }
+
+                // Get team data
+                const teamsSnapshot = await db.collection(COLLECTIONS.TEAMS)
+                    .where('leadId', '==', currentUser.uid)
+                    .limit(1)
+                    .get();
+                
+                if (teamsSnapshot.empty) {
+                    notify("Team not found", "error");
+                    return;
+                }
+                
+                const teamDoc = teamsSnapshot.docs[0];
+                const teamId = teamDoc.id;
+                
+                // Update team document with submission
+                await db.collection(COLLECTIONS.TEAMS).doc(teamId).update({
+                    projectSubmitted: true,
+                    submissionLinks: links,
+                    submissionDate: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Create submission record
+                await db.collection(COLLECTIONS.SUBMISSIONS).add({
+                    teamId: teamId,
+                    teamName: teamDoc.data().teamName,
+                    links: links,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                notify("Project link submitted successfully!", "success");
+                
+                // Clear the form
+                document.getElementById('sub-links').value = '';
+                
+            } catch (error) {
+                console.error("Submission error:", error);
+                notify("Failed to submit project link", "error");
+            } finally {
+                const subBtn = document.getElementById('sub-btn');
+                subBtn.innerHTML = '<span>Submit Project Link</span>';
+                subBtn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // NOTIFICATIONS
+        // ============================================
+        
+        /**
+         * Loads user notifications from Firestore
+         */
+        async function loadUserNotifications() {
+            try {
+                // Get notification list element
+                const notifList = document.getElementById('notif-list');
+                if (!notifList) return;
+                
+                // Set up real-time listener for notifications
+                const unsubscribe = db.collection(COLLECTIONS.NOTIFICATIONS)
+                    .where('isPublic', '==', true)
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .onSnapshot((snapshot) => {
+                        if (snapshot.empty) {
+                            notifList.innerHTML = '<div class="notif-item">No notifications yet</div>';
+                            updateNotificationBadge(0);
+                            return;
+                        }
+                        
+                        let html = '';
+                        snapshot.forEach(doc => {
+                            const notif = doc.data();
+                            html += `
+                                <div class="notif-item">
+                                    <strong>${notif.title || 'Notification'}</strong>
+                                    <p style="margin-top: 4px; font-size: 0.8rem;">${notif.message || ''}</p>
+                                    <small style="color: var(--text-muted);">${formatDate(notif.createdAt)}</small>
+                                </div>
+                            `;
+                        });
+                        
+                        notifList.innerHTML = html;
+                        updateNotificationBadge(snapshot.size);
+                        
+                    }, (error) => {
+                        console.error("Error in notification listener:", error);
+                        notifList.innerHTML = '<div class="notif-item">Error loading notifications</div>';
+                    });
+                
+                // Store unsubscribe function for cleanup
+                window.notificationUnsubscribe = unsubscribe;
+                
+            } catch (error) {
+                console.error("Error setting up notification listener:", error);
+                const notifList = document.getElementById('notif-list');
+                if (notifList) {
+                    notifList.innerHTML = '<div class="notif-item">Error loading notifications</div>';
+                }
+            }
+        }
+
+        /**
+         * Updates notification badge count
+         * @param {number} count - Number of unread notifications
+         */
+        function updateNotificationBadge(count) {
+            const notifBadge = document.getElementById('notif-badge');
+            if (!notifBadge) return;
+            
+            if (count > 0) {
+                notifBadge.classList.remove('hidden');
+                notifBadge.textContent = count > 9 ? '9+' : count;
+            } else {
+                notifBadge.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Cleanup notification listener on page unload
+         */
+        function cleanupNotificationListener() {
+            if (window.notificationUnsubscribe) {
+                window.notificationUnsubscribe();
+                window.notificationUnsubscribe = null;
+            }
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        /**
+         * Formats Firestore timestamp to readable date
+         * @param {Object} timestamp - Firestore timestamp
+         * @returns {string} Formatted date string
+         */
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        
+        /**
+         * Updates authentication UI based on login status
+         */
+        function updateAuthUI() {
+            const role = localStorage.getItem('userRole');
+            const guest = document.getElementById('guest-nav');
+            const authNav = document.getElementById('auth-nav');
+            const regBtn = document.getElementById('nav-reg-btn');
+            const heroBtn = document.getElementById('hero-action-btn');
+            const dashboardNav = document.getElementById('dashboard-nav-item');
+
+            if (currentUser) {
+                guest.classList.add('hidden');
+                authNav.classList.remove('hidden');
+                authNav.classList.add('flex');
+                
+                // Show register button in nav only for leads
+                if (role === 'lead') {
+                    regBtn.classList.remove('hidden');
+                    dashboardNav.classList.remove('hidden');
+                    if(heroBtn) heroBtn.innerText = "Register Your Team Now";
+                    if(heroBtn) heroBtn.onclick = () => switchView('register');
+                } else if (role === 'member') {
+                    regBtn.classList.add('hidden');
+                    dashboardNav.classList.remove('hidden');
+                    if(heroBtn) heroBtn.innerText = "Go to Dashboard";
+                    if(heroBtn) heroBtn.onclick = () => switchView('dashboard');
+                }
+            } else {
+                guest.classList.remove('hidden');
+                authNav.classList.add('hidden');
+                authNav.classList.remove('flex');
+                dashboardNav.classList.add('hidden');
+                if(heroBtn) heroBtn.innerText = "Start Registration (Leads)";
+                if(heroBtn) heroBtn.onclick = () => switchView('lead-login');
+            }
+        }
+
+        /**
+         * Logs out current user
+         */
+        function logout() {
+            auth.signOut();
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userIdentifier');
+            currentUser = null;
+            updateAuthUI();
+            notify("Logged out successfully", "info");
+            switchView('landing');
+        }
+
+        /**
+         * Starts countdown timer to event date
+         */
+        function startCountdown() {
+            // Use the date from settings, or fallback to default
+            let targetDateString = appSettings.eventDate;
+            
+            // If eventDate is just YYYY-MM-DD format, add time
+            if (targetDateString && targetDateString.length === 10) {
+                targetDateString = `${targetDateString} 09:00:00`;
+            }
+            
+            // Create target date object
+            const targetDate = new Date(targetDateString).getTime();
+            console.log("🎯 Countdown target:", new Date(targetDate).toLocaleString());
+            
+            function update() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                
+                if (distance < 0) {
+                    document.getElementById('days').textContent = '00';
+                    document.getElementById('hours').textContent = '00';
+                    document.getElementById('minutes').textContent = '00';
+                    document.getElementById('seconds').textContent = '00';
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            }
+            
+            update();
+            setInterval(update, 1000);
+        }
+
+        /**
+         * Toggles notifications dropdown
+         */
+        function toggleNotifications() {
+            const dd = document.getElementById('notification-dropdown');
+            dd.classList.toggle('active');
+            document.getElementById('notif-badge').classList.add('hidden');
+        }
+
+        /**
+         * Clears all notifications
+         */
+        function clearNotifs() {
+            document.getElementById('notif-list').innerHTML = '<div class="notif-item">No notifications</div>';
+            notify("Cleared", "info");
+        }
+
+        /**
+         * Shows toast notification
+         * @param {string} msg - Message to display
+         * @param {string} type - Notification type (success, error, info, warning)
+         */
+        function notify(msg, type) {
+            const box = document.getElementById('message-box');
+            box.innerText = msg;
+            box.style.display = 'block';
+            box.style.backgroundColor = type === 'success' ? '#22c55e' : 
+                                        type === 'error' ? '#ef4444' : 
+                                        type === 'info' ? '#3b82f6' : '#f59e0b';
+            setTimeout(() => { box.style.display = 'none'; }, 4500);
+        }
+
+        /**
+         * Toggles between light and dark theme
+         */
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('theme-icon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        /**
+         * Toggles mobile menu visibility
+         */
+        function toggleMobileMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Handle scroll events for navbar
+        window.onscroll = () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        };
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            const parent = document.getElementById('notif-parent');
+            const dd = document.getElementById('notification-dropdown');
+            if (parent && !parent.contains(e.target)) dd.classList.remove('active');
+        });
+
+        // ============================================
+        // INITIALIZE ON LOAD
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
+            }
+            
+            // Initialize UI
+            updateAuthUI();
+            
+            // ===== LOAD ALL DATA FROM FIREBASE FIRST =====
+            await loadSettings();        // ✅ LOAD SETTINGS FIRST
+            loadTeamMembers();
+            loadHostingPartners();
+            loadSponsors();
+            
+            // ===== NOW START COUNTDOWN WITH LOADED DATE =====
+            startCountdown();           // ✅ START AFTER SETTINGS ARE LOADED
+            
+            // Load notifications
+            loadUserNotifications();
+            
+            // Check if user is already logged in
+            if (currentUser) {
+                // User is already logged in via onAuthStateChanged
+            }
+            
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', cleanupNotificationListener);
+        });
+    </script>
+</body>
+</html>
