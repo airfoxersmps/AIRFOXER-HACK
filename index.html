@@ -522,6 +522,18 @@
             cursor: not-allowed;
         }
     </style>
+    <script>
+        // ============================================
+        // RIGHT CLICK DISABLE & REFRESH MESSAGE
+        // ============================================
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert('🔄 Use Ctrl+R to refresh the page, 🚫 Right-click is disabled.');
+        
+
+            return false;
+        });
+    </script>
 </head>
 <body>
 
