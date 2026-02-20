@@ -1926,34 +1926,67 @@
             transform: translateY(-4px);
         }
 
+        /* Logo shape classes */
         .sponsor-logo, .partner-logo {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             margin: 0 auto 1rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 3px;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+        }
+
+        .sponsor-logo.circle, .partner-logo.circle {
+            border-radius: 50%;
+        }
+
+        .sponsor-logo.square, .partner-logo.square {
+            border-radius: 12px;
+        }
+
+        .sponsor-logo.rectangle, .partner-logo.rectangle {
+            border-radius: 0;
+            width: 140px;
+            height: 90px;
         }
 
         .sponsor-logo img, .partner-logo img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            background: var(--bg-card);
+            object-fit: contain;
         }
 
         .sponsor-logo i, .partner-logo i {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-card);
-            border-radius: 50%;
-            font-size: 1.5rem;
+            font-size: 2rem;
             color: var(--text-muted);
+        }
+
+        /* Logo shape selector in admin (will be used for data storage) */
+        .logo-shape-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 8px 0;
+        }
+
+        .shape-option {
+            padding: 4px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all var(--transition);
+        }
+
+        .shape-option:hover,
+        .shape-option.selected {
+            background: var(--primary-glow);
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         .sponsor-card h3, .partner-card h3 {
@@ -2189,7 +2222,9 @@
                         <div class="ticker-text" id="ticker-text">
                             Registration open! &nbsp;&nbsp;|&nbsp;&nbsp;
                             Pre-Hackathon workshops announced. &nbsp;&nbsp;|&nbsp;&nbsp;
-                            Final deadline: 22 Feb 2026 &nbsp;&nbsp;|&nbsp;&nbsp;
+                            Final deadline: 05th March 2026 &nbsp;&nbsp;|&nbsp;&nbsp;
+                            2 female participants per team. &nbsp;&nbsp;|&nbsp;&nbsp;
+                            Plagiarism is strictly prohibited.&nbsp;&nbsp;|&nbsp;&nbsp;
                         </div>
                     </div>
                     <i class="fa-solid fa-arrow-right" style="color: var(--primary); cursor: pointer;"></i>
@@ -2298,7 +2333,7 @@
             <div class="container">
                 <div class="text-center" style="margin-bottom: 4rem;">
                     <h2 class="section-title">Hackathon Day <span class="accent">Schedule</span></h2>
-                    <p class="section-subtitle">March 6, 2026</p>
+                    <p class="section-subtitle">March 12, 2026</p>
                 </div>
                 <div class="timeline">
                     <div class="timeline-item">
@@ -2307,7 +2342,7 @@
                             <div class="timeline-bar"></div>
                         </div>
                         <div class="timeline-content">
-                            <span class="timeline-time green">09:00 - 10:00</span>
+                            <span class="timeline-time green"></span>
                             <h3>Registration & Inauguration</h3>
                             <p>Check-in followed by Hackathon Briefing.</p>
                         </div>
@@ -2318,7 +2353,7 @@
                             <div class="timeline-bar"></div>
                         </div>
                         <div class="timeline-content">
-                            <span class="timeline-time blue">10:00 - 18:00</span>
+                            <span class="timeline-time blue"></span>
                             <h3>Development & Mentoring</h3>
                             <p>Session 1 & 2. Lunch break at 13:00.</p>
                         </div>
@@ -2328,7 +2363,7 @@
                             <div class="timeline-dot orange"></div>
                         </div>
                         <div class="timeline-content">
-                            <span class="timeline-time orange">18:00 - 21:00</span>
+                            <span class="timeline-time orange"></span>
                             <h3>Judging & Prizes</h3>
                             <p>Final presentations followed by Closing Ceremony.</p>
                         </div>
@@ -2341,7 +2376,8 @@
         <section class="section">
             <div class="container">
                 <div class="text-center" style="margin-bottom: 3rem;">
-                    <h2 class="section-title">Hosting <span class="accent">Partners</span></h2>
+                    <h2 class="section-title"> Our <span class="accent">Partners</span></h2>
+                                              <!-- Hosting -->
                 </div>
                 <div id="hosting-partners-container" class="flex justify-center gap-8" style="flex-wrap: wrap; min-height: 100px;">
                     <div class="empty-placeholder" style="width: 100%;">
@@ -2719,23 +2755,6 @@
                 </div>
             </div>
 
-            <!-- QR Code Section (For Admin Use - Enter Pass) 
-                 This button simulates admin approval and generates the digital pass.
-                 In production, this should be protected and triggered by a backend function.
-            -->
-            <!-- <div class="payment-card" style="border-top: 3px solid var(--primary); margin-bottom: 1rem;">
-                <div class="payment-header">
-                    <i class="fa-solid fa-passport" style="color: var(--secondary);"></i>
-                    <div>
-                        <h2>Admin: Issue Digital Pass</h2>
-                        <p>Click only after payment verification (simulated admin action).</p>
-                    </div>
-                </div>
-                <button id="enter-pass-btn" class="btn-primary" onclick="generateDigitalPass()">
-                    <i class="fa-solid fa-check-circle"></i> Enter Pass (Approve Payment)
-                </button>
-            </div> -->
-
             <!-- QR Code Section (Visible after approval) -->
             <div id="qr-section" class="payment-card qr-section" style="display: none; border-top: 3px solid var(--success);">
                 <div class="payment-header">
@@ -3102,7 +3121,7 @@
         };
 
         // ============================================
-        // LOAD LANDING PAGE DATA
+        // LOAD LANDING PAGE DATA (ENHANCED WITH LOGO SHAPES)
         // ============================================
         async function loadHostingPartners() {
             try {
@@ -3116,8 +3135,9 @@
                     let html = '';
                     partnersSnap.forEach(doc => {
                         const p = doc.data();
+                        const logoShape = p.logoShape || 'circle'; // Default to circle if not specified
                         html += `<div class="partner-card">
-                            <div class="partner-logo">${p.logoUrl ? `<img src="${p.logoUrl}" alt="${p.name}">` : '<i class="fas fa-building"></i>'}</div>
+                            <div class="partner-logo ${logoShape}">${p.logoUrl ? `<img src="${p.logoUrl}" alt="${p.name}">` : '<i class="fas fa-building"></i>'}</div>
                             <h3>${p.name}</h3>
                             ${p.description ? `<p>${p.description}</p>` : ''}
                         </div>`;
@@ -3141,8 +3161,9 @@
                     let html = '<div class="sponsors-grid">';
                     sponsorsSnap.forEach(doc => {
                         const s = doc.data();
+                        const logoShape = s.logoShape || 'circle'; // Default to circle if not specified
                         html += `<div class="sponsor-card">
-                            <div class="sponsor-logo">${s.logoUrl ? `<img src="${s.logoUrl}" alt="${s.name}">` : '<i class="fas fa-hand-holding-usd"></i>'}</div>
+                            <div class="sponsor-logo ${logoShape}">${s.logoUrl ? `<img src="${s.logoUrl}" alt="${s.name}">` : '<i class="fas fa-hand-holding-usd"></i>'}</div>
                             <h3>${s.name}</h3>
                             <span class="sponsor-tier">${s.tier || 'Partner'}</span>
                             ${s.description ? `<p>${s.description}</p>` : ''}
@@ -3363,9 +3384,6 @@ Generated: ${new Date().toLocaleDateString()}
         // ============================================
         // QR CODE GENERATION & DIGITAL PASS (ADMIN ACTION)
         // ============================================
-        // This function simulates an admin approving the payment.
-        // In a real scenario, this would be triggered by a secure backend function.
-        // It updates the team status to 'verified' and generates the QR pass.
         async function generateDigitalPass() {
             if (!currentUser) {
                 notify("Please login as lead", "error");
